@@ -1,7 +1,13 @@
 import os
 import pandas as pd
+from sklearn.calibration import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OrdinalEncoder
 import statsmodels.api as sm
-
+from sklearn.naive_bayes import CategoricalNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from itertools import chain, combinations
 
 
 def load_data(filename, path, env):
@@ -58,3 +64,36 @@ def map_sector(value):
         elif int(value) in sector_range:
             return sector_name
     return "Unknown"
+
+
+# -----------------------
+
+
+
+
+def encodeAndSplit(df, feature, target):
+    encoder = OrdinalEncoder()
+    X_encoded = encoder.fit_transform(df[feature])
+    le = LabelEncoder()
+    y_encoded = le.fit_transform(df[target])
+    X_train, X_test, y_train, y_test = train_test_split(X_encoded, y_encoded, test_size=0.2, random_state=1)
+    return (X_train, X_test, y_train, y_test)
+
+def naiveBayes(X_train, X_test, y_train, y_test):
+    nb = CategoricalNB()
+    nb.fit(X_train, y_train)
+    y_pred = nb.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    return accuracy
+
+def decisionTree(X_train, X_test, y_train, y_test, max_depth = 5):
+    clf = DecisionTreeClassifier(max_depth=max_depth, random_state=1)
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    return accuracy
+
+
+def power_set(iterable):
+    s = list(iterable)
+    return list(chain.from_iterable(combinations(s, r) for r in range(1, len(s) + 1)))
